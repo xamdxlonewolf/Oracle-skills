@@ -1,6 +1,6 @@
 ---
 name: oke-gva-deployer
-description: Use this skill when the user asks to enable, deploy, or configure Generic VNIC Attachment (GVA) for OCI Kubernetes Engine (OKE), create/update node pools with secondary VNIC profiles, map Application Resources to workloads, or explain GVA functionality, constraints, and scheduling behavior. Do not use it for general OKE incident RCA or for deploying Multus test pods after a GVA node pool already exists; use oke-troubleshooter or oke-multihome-deployer for those surfaces.
+description: Use this skill when the user asks to enable, deploy, or configure Generic VNIC Attachment (GVA) for OCI Kubernetes Engine (OKE), create node pools with secondary VNIC profiles, review update plans for existing GVA node pools, map Application Resources to workloads, or explain GVA functionality, constraints, and scheduling behavior. Do not use it for general OKE incident RCA or for deploying Multus test pods after a GVA node pool already exists; use oke-troubleshooter or oke-multihome-deployer for those surfaces.
 ---
 
 # OKE Generic VNIC Attachment (GVA) Deployer
@@ -11,7 +11,7 @@ Hard constraint:
 - Never query existing node pools for this workflow. Do not run `oci ce node-pool list` or `oci ce node-pool get`.
 - Do not collect node-level information in this workflow. Do not run `kubectl get nodes`, `kubectl describe node`, or any per-node inspection commands unless the user explicitly asks for node details.
 - Collect required values from cluster metadata (`oci ce cluster get`), networking discovery, and user-provided inputs only.
-- Always use an interactive menu for node pool creation/update. Do not perform non-interactive create/update execution in this workflow.
+- Always use an interactive menu for node pool creation. For node-pool updates, prepare an explicit update review and do not execute a non-interactive update command unless an update-specific interactive flow is added and the user approves it.
 - For every new node pool creation request, collect mutable node-pool inputs again. Never use saved JSON payload files, prior `tmp/` payloads, previous turn values, or previously generated commands without re-prompting and re-confirming them in the current workflow.
 - Never start discovery on an implicit/default cluster. Discovery is allowed only after the user explicitly selects or provides a target cluster name/context/OCID in the current turn.
 - Never use an OCI config default region for workflow execution. Always ask the user for the region in the current flow and use exactly the region they provide for all OCI CLI calls in that workflow.
@@ -164,7 +164,7 @@ Validate:
 - Each GVA secondary subnet is IPv4-only and has more than one IPv4 CIDR block.
 
 ## Phase 3b — Required Variable Checklist (Always Collect)
-Before generating create/update commands, collect and confirm:
+Before generating create commands or update review commands, collect and confirm:
 - Cluster context/name
 - Cluster OCID
 - Region
@@ -191,9 +191,9 @@ Before generating create/update commands, collect and confirm:
 
 ---
 
-## Phase 4 — Create or Update Node Pool (CLI)
+## Phase 4 — Create Node Pool or Review Update (CLI)
 Execution constraint:
-- Keep node pool create/update execution interactive (prompt/confirm driven). Command previews are allowed, but do not run non-interactive create/update commands directly.
+- Keep node pool creation interactive (prompt/confirm driven). Command previews are allowed, but do not run non-interactive create or update commands directly.
 
 CLI runtime workflow (mandatory before create):
 1) Check the installed OCI CLI for GA GVA node-pool flags:

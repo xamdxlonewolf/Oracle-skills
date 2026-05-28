@@ -109,13 +109,13 @@ If the context does not match the target cluster, stop and ask the user to switc
 | Pods Pending or Unschedulable | Pod events, node capacity, taints/tolerations, node selectors, autoscaler logs, OCI limits |
 | ImagePullBackOff or ErrImagePull | Pod events, image path, imagePullSecrets, service account, OCIR repository and IAM policy |
 | CrashLoopBackOff or OOMKilled | Pod logs, previous logs, resource requests/limits, node pressure |
-| CNI or pod sandbox failures | Pod events, kube-system CNI pods, OCI VCN-native CNI logs, subnet IP capacity, Multus NADs, NSGs, security lists, and route tables |
-| Service has no LoadBalancer IP | Service events, OCI load balancer state, subnets, NSGs, security lists, route tables, gateways, and quota |
-| Ingress failure | Ingress events, OCI Native Ingress controller logs, listener/certificate/backend health, subnets, NSGs, security lists, and route tables |
+| CNI or pod sandbox failures | Pod events, kube-system CNI pods, OCI VCN-native CNI logs, subnet IP capacity, Multus NADs, all node VNICs, NSGs, security lists, route tables, gateways, and peering paths |
+| Service has no LoadBalancer IP | Service events, OCI load balancer state, subnets, NSGs, security lists, route tables, gateways, peering paths, and quota |
+| Ingress failure | Ingress events, OCI Native Ingress controller logs, listener/certificate/backend health, subnets, NSGs, security lists, route tables, gateways, and peering paths |
 | DNS timeout or NXDOMAIN | CoreDNS health, Service and EndpointSlice state, pod lookup tests |
 | PVC Pending or attach failure | PVC/PV events, CSI controller logs, volume AD, node AD, block volume limits |
 | Workload cannot call OCI API | ServiceAccount, Workload Identity policy, SDK provider, namespace and cluster identity |
-| Private API endpoint unreachable | Kubeconfig, endpoint subnet, NSGs, route tables, bastion or operator host path |
+| Private API endpoint unreachable | Kubeconfig, endpoint subnet, NSGs, security lists, route tables, gateways, peering paths, bastion, or operator host path |
 
 ## Evidence Collection Pattern
 
@@ -169,7 +169,7 @@ When enough selectors are known, map Kubernetes objects to OCI resources:
 
 | Kubernetes object | OCI resource to check |
 |-------------------|-----------------------|
-| Node | Compute instance, primary VNIC, subnet, NSGs, security lists, route table, gateways or peering path, node pool |
+| Node | Compute instance, all VNIC attachments including primary and secondary VNICs, attached subnets, VNIC NSGs, subnet security lists, route tables, gateways or peering paths, node pool |
 | Service type `LoadBalancer` | OCI Load Balancer, backend set, listeners, subnets, NSGs, security lists, route tables, gateways or peering path |
 | Ingress | OCI Load Balancer resources managed by the ingress controller, subnets, NSGs, security lists, route tables, gateways or peering path |
 | PVC/PV | Block Volume or File Storage resource and attachment state |

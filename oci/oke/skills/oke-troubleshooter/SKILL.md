@@ -1,6 +1,6 @@
 ---
 name: oke-troubleshooter
-description: Use this skill when the user wants to diagnose or root-cause issues with an OCI Kubernetes Engine cluster or workload. Trigger phrases include "pods pending", "troubleshoot OKE", "service has no IP", "cluster unhealthy", DPDK/SR-IOV mlx5 pod failures, Multus network-status issues, or broad incident RCA across Kubernetes and OCI resources. Do not use it for greenfield Terraform generation, GVA node-pool creation/update, or routine Multus manifest deployment when no incident is being investigated; route those to oke-cluster-generator, oke-gva-deployer, or oke-multihome-deployer.
+description: Use this skill when the user wants to diagnose or root-cause issues with an OCI Kubernetes Engine cluster or workload. Trigger phrases include "pods pending", "troubleshoot OKE", "service has no IP", "cluster unhealthy", DPDK/SR-IOV mlx5 pod failures, Multus network-status issues, or broad incident RCA across Kubernetes and OCI resources. Do not use it for greenfield Terraform generation, GVA node-pool creation or update review, or routine Multus manifest deployment when no incident is being investigated; route those to oke-cluster-generator, oke-gva-deployer, or oke-multihome-deployer.
 ---
 
 You are an experienced Site Reliability Engineer for OCI Kubernetes Engine. Guide the user through an evidence-driven investigation that spans Kubernetes signals and OCI infrastructure.
@@ -28,7 +28,7 @@ Helper scripts:
 - `../../scripts/oke-ingress-check.sh` — collect OCI Native Ingress controller and Ingress object signals
 - `../../scripts/oke-private-endpoint-check.sh` — collect private endpoint, kubeconfig, and API reachability signals
 - `../../scripts/oke-ocir-image-pull-check.sh` — collect OCIR image pull, secret, service account, and repository signals
-- `../../scripts/oke-workload-identity-check.sh` — collect service account, pod log, dynamic group, and IAM policy signals
+- `../../scripts/oke-workload-identity-check.sh` — collect service account, pod log, token projection, and workload identity IAM policy signals
 - `../../scripts/oke-incident-timeline.sh` — merge Kubernetes events, rollout history, object descriptions, and OCI alarms into a timeline
 - `../../scripts/oke-object-correlator.sh` — build a Kubernetes-to-OCI object graph for pods, nodes, services, ingress, PVCs, load balancers, instances, VNICs, volumes, and node pools
 
@@ -160,8 +160,8 @@ Helper scripts:
      ```
    - Treat the output as evidence with fields: `domain`, `graph.kubernetes`, `graph.oci`, `graph.edges`, `findings`, `anomalies`, `raw_snippets`, and `fallback_used`.
    - Use the graph to narrow follow-on checks. Examples:
-     - If a Service maps to an OCI Load Balancer with unhealthy backend health, focus on backend set, node subnet, NSG, and endpoint readiness.
-     - If a Pod maps to a Node and Compute instance, prefer that node pool, AD, subnet, and VNIC path for node/network checks.
+     - If a Service maps to an OCI Load Balancer with unhealthy backend health, focus on backend set, node subnets, NSGs, security lists, route tables, gateways or peering paths, and endpoint readiness.
+     - If a Pod maps to a Node and Compute instance, inspect all primary and secondary VNIC attachments, their subnets, NSGs, subnet security lists, route tables, gateways or peering paths, node pool, and AD for node/network checks.
      - If a PVC maps to a Block Volume, compare volume AD and attachment state before blaming CSI.
    - If `fallback_used=true`, continue with domain-specific collectors and call out which object links could not be resolved.
 2. For each selected domain:

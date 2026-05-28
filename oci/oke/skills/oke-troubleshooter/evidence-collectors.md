@@ -149,14 +149,16 @@ When a command fails, set `fallback_used` to `true`, capture stderr (sanitized),
   - `oci logging search search-logs --region <region> --search-query "search \"<log_group_ocid>/<log_ocid>\" | where data.loadBalancerId = '<lb_ocid>' | sort by datetime desc" --time-start <iso-start> --time-end <iso-end>` (when LB logs are enabled)
   - `oci nlb network-load-balancer list --compartment-id <compartment> --region <region> --all --output json | jq -r '.data[] | select((."ip-addresses" // []) | any(."ip-address"=="<lb-ip>")) | .id'` (fallback if classic LB lookup is empty)
   - `oci network nsg list --compartment-id <compartment>`
-  - `oci network subnet get --subnet-id <ocid>`
+  - `oci network subnet get --subnet-id <subnet_ocid>`
+  - `oci network security-list get --security-list-id <security_list_ocid>`
+  - `oci network route-table get --rt-id <route_table_ocid>`
 - **Subagent preference**
   - Prefer delegating LB-specific discovery/log retrieval to `oke-lb-log-collector`:
     - resolves LB/NLB OCID from Service IP
     - checks access-log status
     - optionally enables logging (with explicit user approval path)
     - extracts log issue signals for ranking
-- **Normalization tips**: Note load balancer lifecycle (`PROVISIONING`, `FAILED`), security list/NSG rules, CNI pod status, service annotations impacting provisioning. Explicitly record LB logging status as `enabled`, `disabled`, or `unknown`, and include `logging_status_source` showing which check(s) succeeded.
+- **Normalization tips**: Note load balancer lifecycle (`PROVISIONING`, `FAILED`), security list/NSG rules, route table targets, gateway or peering route targets, CNI pod status, and service annotations impacting provisioning. Explicitly record LB logging status as `enabled`, `disabled`, or `unknown`, and include `logging_status_source` showing which check(s) succeeded.
 - **TODO(live validation)**: Confirm the exact OCI CLI fields and Logging Search syntax for LB access-log discovery in the target OCI CLI version before treating log absence as conclusive.
 - **If LB logs are disabled or unknown**: recommend enabling access logs before closing the incident so future RCA has request-level evidence.
   - Offer operator action:
@@ -225,7 +227,9 @@ When a command fails, set `fallback_used` to `true`, capture stderr (sanitized),
   - `oci ce cluster get --cluster-id <cluster_ocid> --region <region>`
   - `oci network subnet get --subnet-id <endpoint_subnet_ocid> --region <region>`
   - `oci network nsg list --compartment-id <compartment> --region <region>`
-- **Normalization tips**: Separate kubeconfig exec/auth failures from network reachability. Flag expired OCI security tokens, private endpoint DNS/routing problems, NSG/security-list blocks, and public/private endpoint expectation mismatch.
+  - `oci network security-list get --security-list-id <security_list_ocid> --region <region>`
+  - `oci network route-table get --rt-id <route_table_ocid> --region <region>`
+- **Normalization tips**: Separate kubeconfig exec/auth failures from network reachability. Flag expired OCI security tokens, private endpoint DNS/routing problems, NSG/security-list blocks, missing gateway or peering routes, and public/private endpoint expectation mismatch.
 
 ## OCIR / Image Pull
 - **Helper script**
@@ -248,9 +252,8 @@ When a command fails, set `fallback_used` to `true`, capture stderr (sanitized),
   - `kubectl -n <ns> describe pod <pod>`
   - `kubectl -n <ns> logs <pod> --tail=200 | egrep -i "notauthorized|forbidden|401|403|principal|workload|token|oci"`
 - **OCI**
-  - `oci iam dynamic-group list --compartment-id <tenancy_ocid> --all`
   - `oci iam policy list --compartment-id <tenancy_ocid> --all`
-- **Normalization tips**: Flag missing service account annotations, dynamic group rule mismatch, policy statement gaps, token projection failures, and pod code using the wrong OCI auth provider.
+- **Normalization tips**: Flag missing service account annotations, workload identity policy condition gaps, token projection failures, and pod code using the wrong OCI auth provider. Do not treat dynamic groups as the primary authorization path for OKE Workload Identity.
 
 ## Incident Timeline
 - **Helper script**
@@ -331,8 +334,8 @@ When a command fails, set `fallback_used` to `true`, capture stderr (sanitized),
   - `kubectl describe serviceaccount <name> -n <ns>`
 - **OCI**
   - `oci iam policy list --compartment-id <tenancy> --query "data[?contains(statements, 'allow service oke')]" --all`
-  - `oci iam dynamic-group list --compartment-id <tenancy>`
-- **Normalization tips**: Summarize denied verbs, missing role bindings, IAM policy gaps affecting OCI API access.
+  - `oci iam dynamic-group list --compartment-id <tenancy>` only when investigating instance-principal or legacy dynamic-group based auth, not OKE Workload Identity.
+- **Normalization tips**: Summarize denied verbs, missing role bindings, IAM policy gaps affecting OCI API access, and distinguish Workload Identity policy conditions from dynamic-group based auth.
 
 ## OCI Infrastructure / Capacity and Service Limits
 - **OCI**

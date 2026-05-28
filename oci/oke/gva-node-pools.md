@@ -47,7 +47,7 @@ Use this skill when the task involves:
 - Secondary VNIC profiles on OKE managed node pools.
 - Application Resources such as `oke-application-resource.oci.oraclecloud.com/frontend`.
 - Workload-specific pod network segmentation.
-- Creating or updating node pools with multiple pod networking paths.
+- Creating new node pools with multiple pod networking paths, or reviewing update plans for existing node pools.
 - Validating pods pinned to a single secondary VNIC profile.
 
 Use `oci/oke/multus-multihome.md` instead when the pod needs multiple interfaces at the same time.
@@ -73,7 +73,7 @@ Collect:
 | Input | Notes |
 |-------|-------|
 | Cluster OCID and region | Use the user-provided cluster; do not assume the current context is correct. |
-| Node pool create or update | New node pools are safer when changing network model. |
+| Operation type | Interactive creation is tool-backed; updates require separate review of the exact update command before execution. New node pools are safer when changing network model. |
 | Node shape | Validate architecture and VNIC limits. |
 | Node count and placement | Include availability domains and worker subnet. |
 | Kubernetes version and image | Node image version must match the selected node Kubernetes version. |
@@ -154,7 +154,7 @@ Before execution, confirm:
 - Each secondary subnet and NSG.
 - Each Application Resource name.
 - `ipCount` per profile.
-- Whether this is create or update.
+- Whether this is an interactive create flow or an update review.
 
 ## Validation
 

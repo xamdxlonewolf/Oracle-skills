@@ -21,7 +21,7 @@ Use this table to map the user's symptom description to diagnostic domains. Star
 | PVC stuck `Pending`, volume attachment failures, CSI errors | Storage, Node health | Block Volume or File Storage? Specific availability domain? Existing capacity or service-limit alarms? |
 | OCI limits exceeded, `TooManyRequests`, throttling | OCI infra, Control plane | Which service returned the error? Was there a recent surge in provisioning? |
 | `Forbidden`, RBAC denial, service account issues | IAM/RBAC, Pod runtime | Which user/service account? Recent policy updates? Using workload identity? |
-| Pod cannot call OCI API, workload identity auth failure, dynamic group mismatch | Workload Identity / OCI API From Pods, IAM/RBAC, Pod runtime | Which service account and namespace? Which OCI SDK/API? What auth error appears in pod logs? |
+| Pod cannot call OCI API, workload identity auth failure, policy condition mismatch | Workload Identity / OCI API From Pods, IAM/RBAC, Pod runtime | Which service account and namespace? Which OCI SDK/API? What auth error appears in pod logs? |
 | `ImagePullBackOff` from OCIR, unauthorized, repo not found | OCIR / Image Pull, Pod runtime, IAM/RBAC, Networking/CNI/LB | Which image region/namespace/repo? Is imagePullSecret in same namespace? Node egress path available? |
 
 ### Additional triage prompts

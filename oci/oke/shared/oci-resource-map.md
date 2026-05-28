@@ -22,8 +22,12 @@ Use the object correlator first when you have a namespace and one or more target
 Expected graph edges include:
 - `scheduled_on`: Pod to Kubernetes node.
 - `runs_on_instance`: Kubernetes node to OCI Compute instance.
-- `has_vnic`: OCI instance to VNIC attachment.
+- `has_vnic`: OCI instance to each primary or secondary VNIC attachment.
 - `attached_to_subnet`: VNIC to subnet.
+- `uses_nsg`: VNIC to Network Security Group.
+- `uses_security_list`: Subnet to security list.
+- `uses_route_table`: Subnet to route table.
+- `routes_to`: Route table to gateway, DRG, private IP, or peering target.
 - `provisions`: Kubernetes Service or Ingress to OCI Load Balancer.
 - `bound_to` and `backs_onto`: PVC to PV to OCI Block Volume.
 
@@ -48,6 +52,13 @@ Use the manual command chains below when the correlator cannot resolve a link or
      --compartment-id <compartment-ocid> \
      --instance-id <instance-ocid> \
      --all
+   ```
+5. Inspect each VNIC and its subnet path:
+   ```bash
+   oci network vnic get --vnic-id <vnic-ocid>
+   oci network subnet get --subnet-id <subnet-ocid>
+   oci network security-list get --security-list-id <security-list-ocid>
+   oci network route-table get --rt-id <route-table-ocid>
    ```
 
 ## Service / Ingress → Load Balancer
@@ -90,16 +101,12 @@ Use the manual command chains below when the correlator cannot resolve a link or
    ```
 
 ## Namespace / Service Account → IAM Policies
-1. Determine dynamic group mapping:
-   ```bash
-   oci iam dynamic-group list --query "data[].{name:name, matchingRule:matchingRule}" --all
-   ```
-2. Locate relevant IAM policy statements:
+1. Locate relevant IAM policy statements:
    ```bash
    oci iam policy list --compartment-id <tenancy-ocid> --all \
      --query "data[].{name:name, statements:statements}"
    ```
-3. Cross-check Kubernetes service account annotations (workload identity):
+2. Cross-check Kubernetes service account annotations and projected token behavior:
    ```bash
    kubectl get serviceaccount <sa> -n <ns> -o yaml
    ```

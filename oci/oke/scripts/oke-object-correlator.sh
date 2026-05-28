@@ -449,6 +449,115 @@ print(json.dumps(plan))
 PY
 execute_plan "$tmp_dir/plan3.json"
 
+python3 - "$records" <<'PY' >"$tmp_dir/plan4.json"
+import json
+import sys
+from pathlib import Path
+
+records = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines() if line.strip()]
+existing = {(r["kind"], r["name"]) for r in records}
+requested = set()
+plan = []
+
+def parse_json(text):
+    try:
+        return json.loads(text)
+    except Exception:
+        return None
+
+def data(obj):
+    if isinstance(obj, dict) and isinstance(obj.get("data"), dict):
+        return obj["data"]
+    return obj
+
+def items(obj):
+    if isinstance(obj, dict):
+        return obj.get("data", [])
+    if isinstance(obj, list):
+        return obj
+    return []
+
+def add(name, kind, cmd):
+    key = (kind, name)
+    if key in existing or key in requested:
+        return
+    requested.add(key)
+    plan.append({"name": name, "kind": kind, "cmd": cmd})
+
+for rec in records:
+    obj = parse_json(rec.get("output", ""))
+    if not obj:
+        continue
+    obj_data = data(obj)
+    if rec["kind"] == "oci_vnic_attachments":
+        for item in items(obj_data):
+            vnic_id = item.get("vnic-id")
+            subnet_id = item.get("subnet-id")
+            if vnic_id:
+                add(f"vnic {vnic_id}", "oci_vnic", ["oci", "network", "vnic", "get", "--vnic-id", vnic_id, "--output", "json"])
+            if subnet_id:
+                add(f"subnet {subnet_id}", "oci_subnet", ["oci", "network", "subnet", "get", "--subnet-id", subnet_id, "--output", "json"])
+    elif rec["kind"] in ("oci_lb", "oci_nlb"):
+        lb = data(obj_data)
+        for subnet_id in lb.get("subnet-ids", []) or []:
+            add(f"subnet {subnet_id}", "oci_subnet", ["oci", "network", "subnet", "get", "--subnet-id", subnet_id, "--output", "json"])
+
+print(json.dumps(plan))
+PY
+execute_plan "$tmp_dir/plan4.json"
+
+python3 - "$records" <<'PY' >"$tmp_dir/plan5.json"
+import json
+import sys
+from pathlib import Path
+
+records = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines() if line.strip()]
+existing = {(r["kind"], r["name"]) for r in records}
+requested = set()
+plan = []
+
+def parse_json(text):
+    try:
+        return json.loads(text)
+    except Exception:
+        return None
+
+def data(obj):
+    if isinstance(obj, dict) and isinstance(obj.get("data"), dict):
+        return obj["data"]
+    return obj
+
+def add(name, kind, cmd):
+    key = (kind, name)
+    if key in existing or key in requested:
+        return
+    requested.add(key)
+    plan.append({"name": name, "kind": kind, "cmd": cmd})
+
+for rec in records:
+    obj = parse_json(rec.get("output", ""))
+    if not obj:
+        continue
+    obj_data = data(obj)
+    if rec["kind"] == "oci_vnic":
+        vnic = data(obj_data)
+        subnet_id = vnic.get("subnet-id")
+        if subnet_id:
+            add(f"subnet {subnet_id}", "oci_subnet", ["oci", "network", "subnet", "get", "--subnet-id", subnet_id, "--output", "json"])
+        for nsg_id in vnic.get("nsg-ids", []) or []:
+            add(f"nsg {nsg_id}", "oci_nsg", ["oci", "network", "nsg", "get", "--nsg-id", nsg_id, "--output", "json"])
+    elif rec["kind"] == "oci_subnet":
+        subnet = data(obj_data)
+        route_table_id = subnet.get("route-table-id")
+        if route_table_id:
+            add(f"route-table {route_table_id}", "oci_route_table", ["oci", "network", "route-table", "get", "--rt-id", route_table_id, "--output", "json"])
+        for sl_id in subnet.get("security-list-ids", []) or []:
+            add(f"security-list {sl_id}", "oci_security_list", ["oci", "network", "security-list", "get", "--security-list-id", sl_id, "--output", "json"])
+
+print(json.dumps(plan))
+PY
+execute_plan "$tmp_dir/plan5.json"
+
 python3 - "$records" "$namespace" "$cluster_id" "$compartment_id" "$region" "$pod" "$deployment" "$service" "$ingress" "$pvc" "$node" <<'PY'
 import json
 import re
@@ -544,6 +653,22 @@ def match_lb_by_ip(items, target_ip):
         if target_ip in lb_addresses(item):
             return item
     return None
+
+def network_entity_type(ocid_value):
+    if not ocid_value:
+        return "oci.network.entity"
+    mapping = {
+        ".internetgateway.": "oci.network.internetgateway",
+        ".natgateway.": "oci.network.natgateway",
+        ".servicegateway.": "oci.network.servicegateway",
+        ".drg.": "oci.network.drg",
+        ".localpeeringgateway.": "oci.network.localpeeringgateway",
+        ".remotepeeringconnection.": "oci.network.remotepeeringconnection",
+        ".privateip.": "oci.network.privateip",
+        ".ipsecconnection.": "oci.network.ipsecconnection",
+        ".networksecuritygroup.": "oci.network.nsg",
+    }
+    return next((node_type for marker, node_type in mapping.items() if marker in ocid_value), "oci.network.entity")
 
 derived = {"node": node_arg, "instance_id": "", "lb_id": "", "lb_ip": "", "pv": "", "volume_id": ""}
 
@@ -694,6 +819,88 @@ for rec in records:
                 subnet_node = oci_id("subnet", subnet_id)
                 add_node(subnet_node, "oci.network.subnet", subnet_id, "oci vnic attachment")
                 add_edge(oci_id("vnic", vnic_id), subnet_node, "attached_to_subnet", "vnic attachment subnet")
+    elif kind == "oci_vnic":
+        vnic = data(obj_data)
+        vnic_id_raw = vnic.get("id", "")
+        vnic_node = oci_id("vnic", vnic_id_raw)
+        add_node(
+            vnic_node,
+            "oci.network.vnic",
+            vnic.get("display-name") or vnic_id_raw,
+            "oci",
+            lifecycle_state=vnic.get("lifecycle-state"),
+            private_ip=vnic.get("private-ip"),
+            public_ip=vnic.get("public-ip"),
+            is_primary=vnic.get("is-primary"),
+            subnet_id=vnic.get("subnet-id"),
+        )
+        subnet_id = vnic.get("subnet-id")
+        if subnet_id:
+            subnet_node = oci_id("subnet", subnet_id)
+            add_node(subnet_node, "oci.network.subnet", subnet_id, "oci vnic")
+            add_edge(vnic_node, subnet_node, "attached_to_subnet", "vnic.subnet-id")
+        for nsg_id in vnic.get("nsg-ids", []) or []:
+            nsg_node = oci_id("nsg", nsg_id)
+            add_node(nsg_node, "oci.network.nsg", nsg_id, "vnic.nsg-ids")
+            add_edge(vnic_node, nsg_node, "uses_nsg", "vnic.nsg-ids")
+    elif kind == "oci_subnet":
+        subnet = data(obj_data)
+        subnet_id_raw = subnet.get("id", "")
+        subnet_node = oci_id("subnet", subnet_id_raw)
+        add_node(
+            subnet_node,
+            "oci.network.subnet",
+            subnet.get("display-name") or subnet_id_raw,
+            "oci",
+            cidr_block=subnet.get("cidr-block"),
+            ipv6_cidr_block=subnet.get("ipv6-cidr-block"),
+            dns_label=subnet.get("dns-label"),
+            route_table_id=subnet.get("route-table-id"),
+            vcn_id=subnet.get("vcn-id"),
+        )
+        vcn_id = subnet.get("vcn-id")
+        if vcn_id:
+            vcn_node = oci_id("vcn", vcn_id)
+            add_node(vcn_node, "oci.network.vcn", vcn_id, "subnet.vcn-id")
+            add_edge(subnet_node, vcn_node, "in_vcn", "subnet.vcn-id")
+        route_table_id = subnet.get("route-table-id")
+        if route_table_id:
+            rt_node = oci_id("route-table", route_table_id)
+            add_node(rt_node, "oci.network.route_table", route_table_id, "subnet.route-table-id")
+            add_edge(subnet_node, rt_node, "uses_route_table", "subnet.route-table-id")
+        for sl_id in subnet.get("security-list-ids", []) or []:
+            sl_node = oci_id("security-list", sl_id)
+            add_node(sl_node, "oci.network.security_list", sl_id, "subnet.security-list-ids")
+            add_edge(subnet_node, sl_node, "uses_security_list", "subnet.security-list-ids")
+    elif kind == "oci_nsg":
+        nsg = data(obj_data)
+        nsg_id_raw = nsg.get("id", "")
+        add_node(oci_id("nsg", nsg_id_raw), "oci.network.nsg", nsg.get("display-name") or nsg_id_raw, "oci", lifecycle_state=nsg.get("lifecycle-state"), vcn_id=nsg.get("vcn-id"))
+    elif kind == "oci_security_list":
+        sl = data(obj_data)
+        sl_id_raw = sl.get("id", "")
+        add_node(
+            oci_id("security-list", sl_id_raw),
+            "oci.network.security_list",
+            sl.get("display-name") or sl_id_raw,
+            "oci",
+            lifecycle_state=sl.get("lifecycle-state"),
+            vcn_id=sl.get("vcn-id"),
+            ingress_rules=len(sl.get("ingress-security-rules", []) or []),
+            egress_rules=len(sl.get("egress-security-rules", []) or []),
+        )
+    elif kind == "oci_route_table":
+        rt = data(obj_data)
+        rt_id_raw = rt.get("id", "")
+        rt_node = oci_id("route-table", rt_id_raw)
+        add_node(rt_node, "oci.network.route_table", rt.get("display-name") or rt_id_raw, "oci", lifecycle_state=rt.get("lifecycle-state"), vcn_id=rt.get("vcn-id"))
+        for idx, rule in enumerate(rt.get("route-rules", []) or [], start=1):
+            target_id = rule.get("network-entity-id") or rule.get("networkEntityId") or ""
+            destination = rule.get("destination") or rule.get("cidr-block") or rule.get("destination-type") or f"rule {idx}"
+            if target_id:
+                target_node = oci_id("network-entity", target_id)
+                add_node(target_node, network_entity_type(target_id), target_id, "route rule", destination=destination)
+                add_edge(rt_node, target_node, "routes_to", str(destination))
     elif kind in ("oci_lb", "oci_nlb"):
         lb = data(obj_data)
         lb_id_raw = lb.get("id", derived["lb_id"])

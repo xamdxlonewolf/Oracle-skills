@@ -1,0 +1,4 @@
+interface:
+  display_name: "OKE Cluster Generator"
+  short_description: "Design OKE clusters and generate Terraform plus OCI Resource Manager schema artifacts."
+  default_prompt: "Design an OCI Kubernetes Engine cluster, validate network and node-pool choices, then generate Terraform and an OCI Resource Manager schema using the OKE domain workflow."

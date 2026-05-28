@@ -12,6 +12,7 @@ Supporting tools and references:
 
 - `oci/oke/scripts/preflight-check.sh`
 - `oci/oke/scripts/validate-cidr.sh`
+- `oci/oke/skills/oke-cluster-generator/references/questionnaire.md`
 - `oci/oke/skills/oke-cluster-generator/reference.md`
 - `oci/oke/skills/oke-cluster-generator/output-templates/terraform.md`
 - `oci/oke/skills/oke-cluster-generator/output-templates/schema.md`

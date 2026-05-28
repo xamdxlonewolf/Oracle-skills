@@ -56,7 +56,6 @@ if [[ -n "$pod" ]]; then
   run_check "pod logs" sh -c "kubectl -n '$namespace' logs '$pod' --tail=200 2>&1 | egrep -i 'notauthorized|forbidden|401|403|principal|workload|token|oci' || true"
 fi
 if [[ -n "$tenancy_id" ]] && command -v oci >/dev/null 2>&1; then
-  run_check "dynamic groups" oci iam dynamic-group list --compartment-id "$tenancy_id" --all --output json
   run_check "IAM policies" oci iam policy list --compartment-id "$tenancy_id" --all --output json
 fi
 
@@ -65,7 +64,7 @@ import json, re, sys
 from pathlib import Path
 records = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines() if line.strip()]
 namespace, serviceaccount, pod, tenancy_id = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
-pat = re.compile(r"(NotAuthorized|Forbidden|401|403|principal|workload|token|dynamic|policy|serviceaccount|oci)", re.I)
+pat = re.compile(r"(NotAuthorized|Forbidden|401|403|principal|workload|token|policy|serviceaccount|namespace|cluster|oci)", re.I)
 findings, anomalies, snippets = [], [], []
 for item in records:
     out = item["output"].strip()

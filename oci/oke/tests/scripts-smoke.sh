@@ -144,8 +144,73 @@ fi
 
 if [[ "$cmd" == compute\ vnic-attachment\ list* ]]; then
   cat <<'JSON'
-{"data":[{"id":"ocid1.vnicattachment.oc1..va","vnic-id":"ocid1.vnic.oc1..vnic","subnet-id":"ocid1.subnet.oc1..node","lifecycle-state":"ATTACHED","display-name":"primary-vnic"}]}
+{"data":[{"id":"ocid1.vnicattachment.oc1..va","vnic-id":"ocid1.vnic.oc1..vnic","subnet-id":"ocid1.subnet.oc1..node","lifecycle-state":"ATTACHED","display-name":"primary-vnic"},{"id":"ocid1.vnicattachment.oc1..vasecondary","vnic-id":"ocid1.vnic.oc1..secondary","subnet-id":"ocid1.subnet.oc1..secondary","lifecycle-state":"ATTACHED","display-name":"secondary-vnic"}]}
 JSON
+  exit 0
+fi
+
+if [[ "$cmd" == network\ vnic\ get* ]]; then
+  if [[ "$cmd" == *"ocid1.vnic.oc1..secondary"* ]]; then
+    cat <<'JSON'
+{"data":{"id":"ocid1.vnic.oc1..secondary","display-name":"secondary-vnic","lifecycle-state":"AVAILABLE","subnet-id":"ocid1.subnet.oc1..secondary","nsg-ids":["ocid1.networksecuritygroup.oc1..secondary"],"private-ip":"10.0.2.10","is-primary":false}}
+JSON
+  else
+    cat <<'JSON'
+{"data":{"id":"ocid1.vnic.oc1..vnic","display-name":"primary-vnic","lifecycle-state":"AVAILABLE","subnet-id":"ocid1.subnet.oc1..node","nsg-ids":["ocid1.networksecuritygroup.oc1..node"],"private-ip":"10.0.1.10","is-primary":true}}
+JSON
+  fi
+  exit 0
+fi
+
+if [[ "$cmd" == network\ subnet\ get* ]]; then
+  if [[ "$cmd" == *"ocid1.subnet.oc1..secondary"* ]]; then
+    cat <<'JSON'
+{"data":{"id":"ocid1.subnet.oc1..secondary","display-name":"secondary-subnet","cidr-block":"10.0.2.0/24","vcn-id":"ocid1.vcn.oc1..vcn","route-table-id":"ocid1.routetable.oc1..secondary","security-list-ids":["ocid1.securitylist.oc1..secondary"]}}
+JSON
+  else
+    cat <<'JSON'
+{"data":{"id":"ocid1.subnet.oc1..node","display-name":"node-subnet","cidr-block":"10.0.1.0/24","vcn-id":"ocid1.vcn.oc1..vcn","route-table-id":"ocid1.routetable.oc1..node","security-list-ids":["ocid1.securitylist.oc1..node"]}}
+JSON
+  fi
+  exit 0
+fi
+
+if [[ "$cmd" == network\ nsg\ get* ]]; then
+  if [[ "$cmd" == *"ocid1.networksecuritygroup.oc1..secondary"* ]]; then
+    cat <<'JSON'
+{"data":{"id":"ocid1.networksecuritygroup.oc1..secondary","display-name":"secondary-nsg","vcn-id":"ocid1.vcn.oc1..vcn","lifecycle-state":"AVAILABLE"}}
+JSON
+  else
+    cat <<'JSON'
+{"data":{"id":"ocid1.networksecuritygroup.oc1..node","display-name":"node-nsg","vcn-id":"ocid1.vcn.oc1..vcn","lifecycle-state":"AVAILABLE"}}
+JSON
+  fi
+  exit 0
+fi
+
+if [[ "$cmd" == network\ security-list\ get* ]]; then
+  if [[ "$cmd" == *"ocid1.securitylist.oc1..secondary"* ]]; then
+    cat <<'JSON'
+{"data":{"id":"ocid1.securitylist.oc1..secondary","display-name":"secondary-sl","vcn-id":"ocid1.vcn.oc1..vcn","ingress-security-rules":[{}],"egress-security-rules":[{}],"lifecycle-state":"AVAILABLE"}}
+JSON
+  else
+    cat <<'JSON'
+{"data":{"id":"ocid1.securitylist.oc1..node","display-name":"node-sl","vcn-id":"ocid1.vcn.oc1..vcn","ingress-security-rules":[{}],"egress-security-rules":[{}],"lifecycle-state":"AVAILABLE"}}
+JSON
+  fi
+  exit 0
+fi
+
+if [[ "$cmd" == network\ route-table\ get* ]]; then
+  if [[ "$cmd" == *"ocid1.routetable.oc1..secondary"* ]]; then
+    cat <<'JSON'
+{"data":{"id":"ocid1.routetable.oc1..secondary","display-name":"secondary-rt","vcn-id":"ocid1.vcn.oc1..vcn","route-rules":[{"destination":"10.1.0.0/16","network-entity-id":"ocid1.localpeeringgateway.oc1..lpg"}],"lifecycle-state":"AVAILABLE"}}
+JSON
+  else
+    cat <<'JSON'
+{"data":{"id":"ocid1.routetable.oc1..node","display-name":"node-rt","vcn-id":"ocid1.vcn.oc1..vcn","route-rules":[{"destination":"0.0.0.0/0","network-entity-id":"ocid1.natgateway.oc1..nat"}],"lifecycle-state":"AVAILABLE"}}
+JSON
+  fi
   exit 0
 fi
 
@@ -186,7 +251,7 @@ fi
 
 if [[ "$cmd" == iam\ policy\ list* ]]; then
   cat <<'JSON'
-{"data":[{"name":"oke-workload-policy","statements":["Allow dynamic-group oke-workloads to read buckets in tenancy"]}]}
+{"data":[{"name":"oke-workload-policy","statements":["Allow any-user to read buckets in tenancy where all {request.principal.type = 'workload'}"]}]}
 JSON
   exit 0
 fi
@@ -850,6 +915,12 @@ run_test_oke_object_correlator_storage_providerid() {
   assert_json_expr "$out" "any(e['from'] == 'k8s:pod:default/storage-pod' and e['to'] == 'k8s:node:node-no-annotation' and e['relation'] == 'scheduled_on' for e in obj['graph']['edges'])" "pod scheduled on node edge"
   assert_json_expr "$out" "any(e['from'] == 'k8s:node:node-no-annotation' and e['to'] == 'oci:instance:ocid1.instance.oc1..inst' and e['relation'] == 'runs_on_instance' and e.get('evidence') == 'node.spec.providerID' for e in obj['graph']['edges'])" "node providerID maps to OCI instance edge"
   assert_json_expr "$out" "any(e['from'] == 'oci:volume:ocid1.volume.oc1..vol' and e['to'] == 'oci:instance:ocid1.instance.oc1..inst' and e['relation'] == 'attached_to_instance' for e in obj['graph']['edges'])" "volume attachment maps block volume to instance"
+  assert_json_expr "$out" "sum(1 for e in obj['graph']['edges'] if e['from'] == 'oci:instance:ocid1.instance.oc1..inst' and e['relation'] == 'has_vnic') == 2" "object correlator maps all VNIC attachments"
+  assert_json_expr "$out" "any(e['from'] == 'oci:vnic:ocid1.vnic.oc1..secondary' and e['to'] == 'oci:subnet:ocid1.subnet.oc1..secondary' and e['relation'] == 'attached_to_subnet' for e in obj['graph']['edges'])" "secondary VNIC maps to secondary subnet"
+  assert_json_expr "$out" "any(e['from'] == 'oci:vnic:ocid1.vnic.oc1..secondary' and e['to'] == 'oci:nsg:ocid1.networksecuritygroup.oc1..secondary' and e['relation'] == 'uses_nsg' for e in obj['graph']['edges'])" "secondary VNIC maps to NSG"
+  assert_json_expr "$out" "any(e['from'] == 'oci:subnet:ocid1.subnet.oc1..secondary' and e['to'] == 'oci:security-list:ocid1.securitylist.oc1..secondary' and e['relation'] == 'uses_security_list' for e in obj['graph']['edges'])" "secondary subnet maps to security list"
+  assert_json_expr "$out" "any(e['from'] == 'oci:subnet:ocid1.subnet.oc1..secondary' and e['to'] == 'oci:route-table:ocid1.routetable.oc1..secondary' and e['relation'] == 'uses_route_table' for e in obj['graph']['edges'])" "secondary subnet maps to route table"
+  assert_json_expr "$out" "any(e['from'] == 'oci:route-table:ocid1.routetable.oc1..secondary' and e['to'] == 'oci:network-entity:ocid1.localpeeringgateway.oc1..lpg' and e['relation'] == 'routes_to' for e in obj['graph']['edges'])" "route table maps to peering path"
   assert_json_expr "$out" "any(n['id'] == 'oci:instance:ocid1.instance.oc1..inst' and n['type'] == 'oci.compute.instance' for n in obj['graph']['oci'])" "OCI compute instance node exists"
 }
 
