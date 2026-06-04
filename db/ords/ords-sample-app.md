@@ -171,7 +171,6 @@ oci dbtools-runtime database-api-gateway-config-global update default \
   --pool-route PATH \
   --http-port 8088 \
   --https-port 0 
-
 ```
 
 Create pools mapped to Database Tools connections:
