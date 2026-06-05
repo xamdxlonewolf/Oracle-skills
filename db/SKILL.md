@@ -20,6 +20,7 @@ db/
 ├── agent/
 ├── appdev/
 ├── architecture/
+├── backup-recovery/
 ├── containers/
 ├── design/
 ├── devops/
@@ -39,10 +40,11 @@ db/
 
 | Topic | Directory |
 |-------|-----------|
-| Backup, recovery, RMAN, Data Guard, redo/undo logs, users | `db/admin/` |
+| Data Guard, redo/undo logs, users | `db/admin/` |
 | Safe DML, destructive operation guards, idempotency, schema discovery, ORA- error handling | `db/agent/` |
 | JDBC, pooling, JSON, XML, spatial, Oracle Text, transactions, MLE, language drivers | `db/appdev/` |
 | RAC, Multitenant, Exadata, In-Memory, OCI database services, Data Guard architecture | `db/architecture/` |
+| Backup, recovery, RMAN, Autonomous Recovery Service, Cloud Protect | `db/backup-recovery/` |
 | OCR database-category container images and pull guidance | `db/containers/` |
 | ERD, data modeling, partitioning, tablespaces | `db/design/` |
 | Schema migrations, online operations, edition-based redefinition, testing, version control | `db/devops/` |
@@ -67,6 +69,8 @@ db/
 - `db/devops/schema-migrations.md`
 - `db/agent/schema-discovery.md`
 - `db/containers/container-selection-matrix.md`
+- `db/backup-recovery/autonomous-recovery-service.md`
+- `db/backup-recovery/cloud-protect.md`
 
 ## Common Multi-Step Flows
 
