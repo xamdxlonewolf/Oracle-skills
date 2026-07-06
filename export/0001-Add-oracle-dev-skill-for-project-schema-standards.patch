@@ -1,0 +1,835 @@
+From 410e2151350b3c134dbea88a068f34c59a6d5294 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Mon, 6 Jul 2026 18:41:43 +0000
+Subject: [PATCH] Add oracle-dev skill for project schema standards
+
+Copy oracle-dev domain from Oracle-skills with Cobb-specific README
+and external references to oracle/skills/db for generic Oracle topics.
+---
+ README.md                                    |  43 ++-
+ oracle-dev/SKILL.md                          |  83 +++++
+ oracle-dev/design/project-prefix.md          |  92 ++++++
+ oracle-dev/design/schema-standards.md        | 306 +++++++++++++++++++
+ oracle-dev/devops/idempotent-ddl-scripts.md  | 209 +++++++++++++
+ oracle-dev/templates/oracle-schema-prefix.md |  42 +++
+ 6 files changed, 774 insertions(+), 1 deletion(-)
+ create mode 100644 oracle-dev/SKILL.md
+ create mode 100644 oracle-dev/design/project-prefix.md
+ create mode 100644 oracle-dev/design/schema-standards.md
+ create mode 100644 oracle-dev/devops/idempotent-ddl-scripts.md
+ create mode 100644 oracle-dev/templates/oracle-schema-prefix.md
+
+diff --git a/README.md b/README.md
+index bed95a4..6b8d281 100644
+--- a/README.md
++++ b/README.md
+@@ -1,2 +1,43 @@
+ # cobb-dev-agent-skills
+-Collection of agent skills for AI coding
++
++Collection of agent skills for AI coding on Cobb County development projects.
++
++## Skills
++
++| Skill | Path | Description |
++|-------|------|-------------|
++| Oracle Dev | `oracle-dev/` | Project-specific Oracle Database schema and SQL standards (19c-first) |
++
++## Installation
++
++Install a skill by pointing at this repository and the skill folder:
++
++```bash
++npx skills add xamdxlonewolf/cobb-dev-agent-skills/oracle-dev
++```
++
++### Companion skill: Oracle Database (`db/`)
++
++`oracle-dev` covers application schema conventions. For generic Oracle administration, performance, PL/SQL, SQLcl, ORDS, and agent-safe database workflows, also install the official Oracle Database domain:
++
++```bash
++npx skills add oracle/skills/db
++```
++
++## Repository layout
++
++```text
++cobb-dev-agent-skills/
++├── README.md
++└── oracle-dev/
++    ├── SKILL.md
++    ├── design/
++    ├── devops/
++    └── templates/
++```
++
++## oracle-dev quick start
++
++1. Copy `oracle-dev/templates/oracle-schema-prefix.md` into your project as `oracle-schema-prefix.md`.
++2. Fill in the application prefix, schema owner, and runtime users.
++3. Agents read that file before creating tables, views, indexes, or seed scripts.
+diff --git a/oracle-dev/SKILL.md b/oracle-dev/SKILL.md
+new file mode 100644
+index 0000000..4913ca9
+--- /dev/null
++++ b/oracle-dev/SKILL.md
+@@ -0,0 +1,83 @@
++---
++name: oracle-dev
++description: Project-specific Oracle Database schema and SQL development standards for 19c-first estates. Use when creating or altering tables, views, indexes, constraints, sequences, seed data scripts, or idempotent DDL in application schemas. Covers naming conventions, natural keys, audit columns, lookup-table patterns, hand-run migration scripts, and project prefix discovery. Does not replace the generic db/ domain for administration, performance tuning, PL/SQL package design, ORDS, or agent-safe operations — route those to db/ when needed.
++---
++
++# Oracle Dev Schema Skills
++
++Project-tailored Oracle Database guidance for **SQL and schema object creation**. This domain reflects Cobb County application development preferences, not generic Oracle documentation defaults.
++
++For administration, performance, security, PL/SQL patterns, SQLcl, ORDS, and broad Oracle Database topics, install and use the **`db/`** domain from [oracle/skills](https://github.com/oracle/skills):
++
++```bash
++npx skills add oracle/skills/db
++```
++
++## How to Use This Domain
++
++1. **Read the project prefix file first** — see `design/project-prefix.md`.
++2. Apply `design/schema-standards.md` for every new or changed object.
++3. Use `devops/idempotent-ddl-scripts.md` for install scripts, seed data, and object deployment.
++4. Fall back to the external **`db/`** skill from `oracle/skills` for topics not covered here.
++
++## Directory Structure
++
++```text
++oracle-dev/
++├── design/
++│   ├── project-prefix.md
++│   └── schema-standards.md
++├── devops/
++│   └── idempotent-ddl-scripts.md
++└── templates/
++    └── oracle-schema-prefix.md
++```
++
++## Category Routing
++
++| Topic | File |
++|-------|------|
++| Application prefix discovery and project-local config | `design/project-prefix.md` |
++| Tables, columns, keys, constraints, indexes, views, data types, audit columns | `design/schema-standards.md` |
++| Hand-run scripts, MERGE seeds, CREATE OR REPLACE, table-exists PL/SQL blocks | `devops/idempotent-ddl-scripts.md` |
++| Blank prefix template to copy into a project repo | `templates/oracle-schema-prefix.md` |
++
++## Key Starting Points
++
++- `design/project-prefix.md`
++- `design/schema-standards.md`
++- `devops/idempotent-ddl-scripts.md`
++
++## Common Multi-Step Flows
++
++| Task | Recommended Sequence |
++|------|----------------------|
++| Add a new application table | `project-prefix.md` → `schema-standards.md` → `idempotent-ddl-scripts.md` |
++| Add seed / reference data | `schema-standards.md` (lookup FK pattern) → `idempotent-ddl-scripts.md` (MERGE) |
++| Add a view over app tables | `project-prefix.md` → `schema-standards.md` → `idempotent-ddl-scripts.md` |
++| Need explain plan, AWR, or admin help | Install `oracle/skills/db` → `db/performance/` or `db/admin/` |
++
++## Relationship to `db/` (oracle/skills)
++
++Install both skills when doing database work:
++
++```bash
++npx skills add xamdxlonewolf/cobb-dev-agent-skills/oracle-dev
++npx skills add oracle/skills/db
++```
++
++| Prefer `oracle-dev/` | Prefer `db/` |
++|----------------------|--------------|
++| Naming, PK strategy, audit columns, app schema layout | Generic Oracle data modeling examples |
++| Natural keys, lookup FKs, status-based lifecycle | DW star schema, bitmap indexes, partitioning strategy |
++| Hand-run idempotent install scripts | Liquibase/Flyway-first migration workflows |
++| 19c-first project defaults | PL/SQL package design, error handling, collections |
++
++## APEX and Export Exclusions
++
++Never modify:
++
++- Any `apex/` folder (Oracle APEX export)
++- Root-level `f###.sql` files (APEX application exports, e.g. `f191.sql`)
++
++Schema changes belong in the project's SQL script folders, not APEX exports.
+diff --git a/oracle-dev/design/project-prefix.md b/oracle-dev/design/project-prefix.md
+new file mode 100644
+index 0000000..90ed520
+--- /dev/null
++++ b/oracle-dev/design/project-prefix.md
+@@ -0,0 +1,92 @@
++# Project Prefix Discovery
++
++## Overview
++
++Application objects use a **project prefix** so they are distinguishable from other schemas, vendor tables, and shared database objects. The prefix applies to **all** creatable objects unless the table or view name already makes the application obvious from context.
++
++Apply the prefix to:
++
++- Tables
++- Views
++- Indexes
++- Sequences
++- Constraints (primary key, foreign key, unique, check)
++- Standalone triggers (when not embedded in a package)
++
++Do **not** guess a prefix when it cannot be inferred from the project.
++
++---
++
++## Step 1: Look for a Project-Local Config File
++
++Before creating or renaming any object, search the project repository for:
++
++```text
++oracle-schema-prefix.md
++```
++
++Also check common alternates:
++
++```text
++.oracle/schema-prefix.md
++docs/oracle-schema-prefix.md
++database/oracle-schema-prefix.md
++```
++
++If the file exists, **use the prefix and schema settings documented there** for every object in that project. Do not invent a different prefix in the same repo.
++
++---
++
++## Step 2: Infer from Existing Objects
++
++If no config file exists, inspect the target schema for an established pattern:
++
++```sql
++SELECT table_name
++FROM   user_tables
++WHERE  table_name NOT LIKE 'BIN$%'
++ORDER  BY 1;
++```
++
++Look for a consistent leading token (for example `acme_orders`, `acme_customers` → prefix `acme_`).
++
++---
++
++## Step 3: Ask the User
++
++If neither a config file nor an obvious pattern exists, **stop and ask**:
++
++> What prefix should be used for Oracle objects in this project (e.g. `acme_`)?
++
++After the user answers, **create** `oracle-schema-prefix.md` at the project root using `templates/oracle-schema-prefix.md` from this skill domain. Commit that file so future work stays consistent.
++
++---
++
++## Prefix Rules
++
++| Rule | Detail |
++|------|--------|
++| Case | Lowercase, same as table naming (`acme_`) |
++| Separator | Underscore between prefix and object name |
++| Tables | `{prefix}{plural_noun}` → `acme_orders` |
++| Views | `vw_{prefix}{name}` or `vw_{name}` with prefix in name → `vw_acme_active_orders` |
++| Sequences | `seq_{prefix}{table}` → `seq_acme_orders` (only when not using identity) |
++| Indexes | `idx_{prefix}{table}_…` → see `schema-standards.md` |
++| Constraints | Keep `pk_`, `fk_`, `uq_`, `ck_` pattern with prefixed table names → `pk_acme_orders` |
++
++---
++
++## Example Project Config
++
++See `templates/oracle-schema-prefix.md` for the canonical template.
++
++---
++
++## Oracle Version Notes (19c vs 26ai)
++
++Prefix rules are version-independent.
++
++## Sources
++
++- Project convention (this domain)
++- `oracle-dev/design/schema-standards.md`
+diff --git a/oracle-dev/design/schema-standards.md b/oracle-dev/design/schema-standards.md
+new file mode 100644
+index 0000000..f651c3e
+--- /dev/null
++++ b/oracle-dev/design/schema-standards.md
+@@ -0,0 +1,306 @@
++# Schema Standards
++
++## Overview
++
++Oracle schema object standards for application development. Baseline target is **Oracle Database 19c**; syntax should remain forward-compatible with **26ai** where practical.
++
++Read `project-prefix.md` before creating objects. Apply the project prefix to all objects listed there.
++
++For PL/SQL package/procedure style, use `db/plsql/`. This file covers **tables, views, indexes, constraints, sequences, and column design**.
++
++---
++
++## Naming Conventions
++
++### General Rules
++
++- **Lowercase `snake_case`** for tables, columns, and non-constraint object names in DDL you author.
++- **Unquoted identifiers** — Oracle stores them as uppercase internally; do not use double-quoted mixed-case names unless required (for example some database link or legacy object names).
++- **Plural nouns** for table names: `orders`, `order_items`, `customer_statuses`.
++- **Singular nouns** for column names: `order_id`, `status_code`, `email`.
++
++### Constraint Names
++
++Use the `db/` skill pattern with prefixed table names:
++
++| Type | Pattern | Example |
++|------|---------|---------|
++| Primary key | `pk_{table}` | `pk_acme_orders` |
++| Foreign key | `fk_{child}_{parent}` | `fk_acme_order_items_acme_orders` |
++| Unique | `uq_{table}_{column}` | `uq_acme_customers_email` |
++| Check | `ck_{table}_{column}` | `ck_acme_orders_amount` |
++
++### Views
++
++- Prefix: **`vw_`**
++- Example: `vw_acme_open_orders`
++
++### Sequences
++
++- Use only when identity columns are not the right fit (see Primary Keys).
++- Pattern: **`seq_{table}`** → `seq_acme_invoice_numbers`
++- Prefer identity columns for ordinary surrogate keys.
++
++### Indexes
++
++- Prefix: **`idx_`**
++- Include column or purpose in the name when helpful: `idx_acme_orders_customer_id`
++- When **more than one index** exists on the same table or view, append a numeric suffix: `idx_acme_orders_1`, `idx_acme_orders_2`, `idx_acme_orders_3`
++- Number indexes in a stable order (document in the table script or project config if ambiguous).
++
++---
++
++## Primary Keys
++
++### Default: Natural Keys
++
++Use the **business key** as the primary key when it is stable, unique, and well understood.
++
++Examples:
++
++```sql
++-- Lookup / reference table: code is the PK
++CREATE TABLE acme_order_statuses (
++    status_code   VARCHAR2(30)  NOT NULL,
++    status_name   VARCHAR2(100) NOT NULL,
++    CONSTRAINT pk_acme_order_statuses PRIMARY KEY (status_code)
++);
++
++-- Composite natural key on a junction table
++CREATE TABLE acme_order_tags (
++    order_id   NUMBER        NOT NULL,
++    tag_code   VARCHAR2(30)  NOT NULL,
++    CONSTRAINT pk_acme_order_tags PRIMARY KEY (order_id, tag_code),
++    CONSTRAINT fk_acme_order_tags_acme_orders
++        FOREIGN KEY (order_id) REFERENCES acme_orders (order_id)
++);
++```
++
++### When to Use a Surrogate Key
++
++Add a surrogate primary key (`id` column) only when:
++
++- The natural key is wide, composite, or likely to change
++- Multiple source systems supply conflicting natural keys
++- ORM or integration patterns require a single numeric key
++- High-volume child tables benefit from a narrow FK
++
++### Surrogate Key Implementation
++
++When a surrogate is needed:
++
++```sql
++CREATE TABLE acme_orders (
++    order_id      NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY,
++    order_number  VARCHAR2(50)  NOT NULL,
++    -- …
++    CONSTRAINT pk_acme_orders PRIMARY KEY (order_id),
++    CONSTRAINT uq_acme_orders_order_number UNIQUE (order_number)
++);
++```
++
++**Identity column choice: `GENERATED BY DEFAULT ON NULL`**
++
++| Option | Behavior | Use when |
++|--------|----------|----------|
++| `GENERATED ALWAYS` | Oracle always assigns; explicit values rejected | Maximum guard against manual IDs |
++| `GENERATED BY DEFAULT` | Omit column → generated; explicit value allowed; **NULL stays NULL** | Overrides for migrations |
++| **`GENERATED BY DEFAULT ON NULL`** | Omit column → generated; **NULL → generated**; explicit value allowed | **Default for this project** — supports migrations, MERGE seeds, and bulk loads where `NULL` means "assign next" |
++
++Standalone sequences (`seq_*`) remain acceptable when you need shared numbering across tables, gap-sensitive business numbers, or patterns identity columns do not cover.
++
++### Primary Key Data Type
++
++- Use bare **`NUMBER`** for surrogate keys so values can scale to Oracle's maximum precision.
++- Size natural keys explicitly (`VARCHAR2(30)`, etc.).
++
++### Gaps in Identifiers
++
++Gaps from sequence cache, rollback, or restart are **acceptable**. Do not use `NOCACHE` to chase gap-free IDs.
++
++---
++
++## Standard Audit Columns
++
++Every application table must include:
++
++| Column | Type | Notes |
++|--------|------|-------|
++| `created_by` | `VARCHAR2(128) NOT NULL` | Application user or service account |
++| `created` | `TIMESTAMP NOT NULL` | Default `SYSTIMESTAMP` |
++| `modified_by` | `VARCHAR2(128)` | Set on update |
++| `modified` | `TIMESTAMP` | Set on update |
++
++```sql
++CREATE TABLE acme_orders (
++    order_id      NUMBER        GENERATED BY DEFAULT ON NULL AS IDENTITY,
++    order_number  VARCHAR2(50)  NOT NULL,
++    created_by    VARCHAR2(128) NOT NULL,
++    created       TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,
++    modified_by   VARCHAR2(128),
++    modified      TIMESTAMP,
++    CONSTRAINT pk_acme_orders PRIMARY KEY (order_id)
++);
++```
++
++Populate `modified_by` and `modified` in application update logic or a centralized audit trigger/package — not only at insert time.
++
++---
++
++## Status and Lifecycle (Soft Delete)
++
++Do not use `is_deleted` / `deleted_at` flags by default.
++
++Use a **`status`** column that references a **lookup table** via foreign key:
++
++```sql
++CREATE TABLE acme_record_statuses (
++    status_code   VARCHAR2(30)  NOT NULL,
++    status_name   VARCHAR2(100) NOT NULL,
++    CONSTRAINT pk_acme_record_statuses PRIMARY KEY (status_code)
++);
++
++CREATE TABLE acme_customers (
++    customer_id   NUMBER        NOT NULL,
++    email         VARCHAR2(255) NOT NULL,
++    status_code   VARCHAR2(30)  NOT NULL,
++    created_by    VARCHAR2(128) NOT NULL,
++    created       TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,
++    modified_by   VARCHAR2(128),
++    modified      TIMESTAMP,
++    CONSTRAINT pk_acme_customers PRIMARY KEY (customer_id),
++    CONSTRAINT fk_acme_customers_acme_record_statuses
++        FOREIGN KEY (status_code) REFERENCES acme_record_statuses (status_code),
++    CONSTRAINT uq_acme_customers_email UNIQUE (email)
++);
++```
++
++Seed status values (`ACTIVE`, `INACTIVE`, `CANCELLED`, etc.) with idempotent `MERGE` scripts — see `devops/idempotent-ddl-scripts.md`.
++
++---
++
++## Data Types
++
++| Use case | Type | Notes |
++|----------|------|-------|
++| Text | `VARCHAR2(n)` | **Always specify `n`** — never default to 4000 without reason |
++| Fixed codes | `VARCHAR2(n)` or `CHAR(n)` | Prefer `VARCHAR2` unless fixed width is required |
++| Integers / IDs | `NUMBER` | Bare `NUMBER` for surrogates; precision on natural numeric keys when needed |
++| Money / quantities | `NUMBER(p,s)` | **Case by case** — document precision per column |
++| Booleans (19c) | `NUMBER(1,0)` + `CHECK` | `CHECK (col IN (0, 1))` — revisit when on 26ai SQL `BOOLEAN` |
++| Event timestamps | **`TIMESTAMP`** | Default for date/time columns |
++| Date-only (rare) | `DATE` | Only when time-of-day is never relevant |
++
++Avoid `LONG`, `LONG RAW`, and unbounded bare `NUMBER` on financial amounts.
++
++---
++
++## Foreign Keys and Indexes
++
++### Referential Actions
++
++- Default: **no action** (restrict) — do not add `ON DELETE CASCADE` unless the use case requires it.
++- Document any cascade or set-null exception in the script or project config.
++
++### Index on Foreign Key Columns
++
++**Create an index on every foreign key column** (or leading column of a composite FK).
++
++> **Important:** Oracle does **not** automatically create an index on the **child** side of a foreign key. Oracle creates indexes automatically for **primary key** and **unique** constraints only. Without an index on the child FK column, deletes/updates on the parent table can lock the entire child table, and joins may perform poorly.
++
++```sql
++CONSTRAINT fk_acme_order_items_acme_orders
++    FOREIGN KEY (order_id) REFERENCES acme_orders (order_id);
++
++CREATE INDEX idx_acme_order_items_order_id
++    ON acme_order_items (order_id);
++```
++
++When multiple indexes exist on `acme_order_items`, use numeric suffixes: `idx_acme_order_items_1`, `idx_acme_order_items_2`.
++
++---
++
++## Lookup Tables
++
++Prefer **lookup tables + FK** over `CHECK (status IN (...))` for codes that may grow or need labels:
++
++- Status, type, category, reason codes
++- Seed with `MERGE` in install scripts
++- Natural key on the code column (`status_code`, `type_code`)
++
++Use `CHECK` constraints for invariant business rules that are not lookup-driven (non-negative amounts, valid date ranges).
++
++---
++
++## Tablespaces and Storage Clauses
++
++- **Omit `TABLESPACE` and storage clauses** from application DDL — let the schema default tablespace apply.
++- Strip storage/tablespace from extracted DDL checked into git (same idea as `db/devops/version-control-sql.md`).
++
++---
++
++## Schema Users and Privileges
++
++Follow `db/design/data-modeling.md` security section:
++
++- **Schema owner** account: holds objects; locked or not used for application connections
++- **Application user**: `CREATE SESSION` plus explicit DML grants on required tables/views
++- **Migration/install account**: DDL privileges as needed for script deployment
++
++---
++
++## Views
++
++```sql
++CREATE OR REPLACE VIEW vw_acme_open_orders AS
++SELECT o.order_id,
++       o.order_number,
++       o.created
++FROM   acme_orders o
++JOIN   acme_order_statuses s ON s.status_code = o.status_code
++WHERE  s.status_code = 'OPEN';
++```
++
++Use `CREATE OR REPLACE` in install scripts.
++
++---
++
++## Quoted Identifiers
++
++Avoid double-quoted identifiers. Exception: integrating with legacy or database-link objects that were created quoted and cannot be renamed.
++
++---
++
++## Version Notes (19c vs 26ai)
++
++| Topic | 19c (current default) | 26ai (upcoming) |
++|-------|----------------------|-----------------|
++| Identity columns | `GENERATED BY DEFAULT ON NULL AS IDENTITY` | Same |
++| Boolean columns | `NUMBER(1,0)` + CHECK | May switch to SQL `BOOLEAN` later |
++| `FETCH FIRST` / ANSI joins | Supported | Supported |
++| Timestamp default | `TIMESTAMP` + `SYSTIMESTAMP` | Same |
++
++Write new scripts for 19c; avoid 23ai-only syntax unless guarded with version checks.
++
++---
++
++## Common Mistakes
++
++| Mistake | Why it is wrong |
++|---------|-----------------|
++| Assuming Oracle indexes FK columns automatically | Only PK/unique get implicit indexes; index the child FK yourself |
++| `GENERATED ALWAYS` when loading migrated data | Blocks explicit key inserts; use `BY DEFAULT ON NULL` |
++| `CHECK` instead of lookup for status | Harder to extend; inconsistent labels |
++| Missing audit columns | Breaks project standard and traceability |
++| Uppercase table names in new DDL | Conflicts with project lowercase convention |
++| Editing APEX export SQL | Out of scope — never modify `apex/` or `f###.sql` |
++
++---
++
++## Sources
++
++- Project conventions (this domain)
++- `db/design/erd-design.md` — constraint naming patterns (adapted to lowercase)
++- `db/appdev/sequences-identity.md` — identity column behavior
++- `db/sql-dev/sql-best-practices.md` — data types and SQL style
++- `db/design/data-modeling.md` — schema owner / app user separation
+diff --git a/oracle-dev/devops/idempotent-ddl-scripts.md b/oracle-dev/devops/idempotent-ddl-scripts.md
+new file mode 100644
+index 0000000..bca6bb0
+--- /dev/null
++++ b/oracle-dev/devops/idempotent-ddl-scripts.md
+@@ -0,0 +1,209 @@
++# Idempotent DDL Scripts
++
++## Overview
++
++This project deploys schema changes with **hand-run SQL scripts**, not Liquibase or Flyway as the primary workflow.
++
++Patterns:
++
++| Object type | Idempotent pattern |
++|-------------|-------------------|
++| Tables | PL/SQL block — create if not exists; optional drop-and-recreate flag |
++| Views, procedures, functions, packages, triggers | `CREATE OR REPLACE` |
++| Seed / reference data | `MERGE` |
++| Indexes, constraints (conditional) | Data dictionary check or exception handling |
++
++File names: **lowercase** with underscores — `orders.sql`, `seed_order_statuses.sql`, `install.sql`.
++
++---
++
++## Master Install Script
++
++Use an ordered `install.sql` that calls scripts in dependency order:
++
++```sql
++-- install.sql
++WHENEVER SQLERROR EXIT FAILURE ROLLBACK
++SET DEFINE ON
++
++-- Pass recreate=1 to drop and rebuild tables (dev only)
++DEFINE recreate = 0
++
++@@tables/record_statuses.sql
++@@tables/customers.sql
++@@tables/orders.sql
++@@indexes/orders.sql
++@@views/vw_open_orders.sql
++@@seeds/record_statuses.sql
++@@seeds/order_statuses.sql
++@@grants/app_user.sql
++```
++
++---
++
++## Table Scripts: Exists Check with Optional Recreate
++
++Oracle has no `CREATE TABLE IF NOT EXISTS`. Use a data dictionary check. Honor a **`recreate`** substitution variable for development resets.
++
++```sql
++-- tables/orders.sql
++-- Depends on: record_statuses, customers
++-- Prefix: acme_ (from oracle-schema-prefix.md)
++
++DECLARE
++    v_count   NUMBER;
++    v_recreate VARCHAR2(10) := TRIM('&&recreate.');
++BEGIN
++    SELECT COUNT(*)
++    INTO   v_count
++    FROM   user_tables
++    WHERE  table_name = 'ACME_ORDERS';  -- dictionary stores unquoted names uppercase
++
++    IF v_count > 0 AND v_recreate IN ('1', 'Y', 'YES', 'TRUE') THEN
++        EXECUTE IMMEDIATE 'DROP TABLE acme_orders CASCADE CONSTRAINTS PURGE';
++        v_count := 0;
++    END IF;
++
++    IF v_count = 0 THEN
++        EXECUTE IMMEDIATE q'[
++            CREATE TABLE acme_orders (
++                order_id       NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY,
++                order_number   VARCHAR2(50)   NOT NULL,
++                customer_id    NUMBER         NOT NULL,
++                status_code    VARCHAR2(30)   NOT NULL,
++                created_by     VARCHAR2(128)  NOT NULL,
++                created        TIMESTAMP      DEFAULT SYSTIMESTAMP NOT NULL,
++                modified_by    VARCHAR2(128),
++                modified       TIMESTAMP,
++                CONSTRAINT pk_acme_orders PRIMARY KEY (order_id),
++                CONSTRAINT uq_acme_orders_order_number UNIQUE (order_number),
++                CONSTRAINT fk_acme_orders_acme_customers
++                    FOREIGN KEY (customer_id) REFERENCES acme_customers (customer_id),
++                CONSTRAINT fk_acme_orders_acme_order_statuses
++                    FOREIGN KEY (status_code) REFERENCES acme_order_statuses (status_code)
++            )
++        ]';
++    END IF;
++END;
++/
++```
++
++**Safety:** Default `recreate = 0`. Document clearly when `recreate=1` is appropriate (local dev, ephemeral CI). Never default to drop in production install paths.
++
++---
++
++## Index Scripts
++
++Create indexes idempotently:
++
++```sql
++-- indexes/orders.sql
++DECLARE
++    v_count NUMBER;
++BEGIN
++    SELECT COUNT(*) INTO v_count
++    FROM   user_indexes
++    WHERE  index_name = 'IDX_ACME_ORDERS_CUSTOMER_ID';
++
++    IF v_count = 0 THEN
++        EXECUTE IMMEDIATE '
++            CREATE INDEX idx_acme_orders_customer_id
++            ON acme_orders (customer_id)';
++    END IF;
++END;
++/
++```
++
++When multiple indexes exist on one table, use numeric suffixes per `schema-standards.md`.
++
++---
++
++## Views and Program Units
++
++Always use `CREATE OR REPLACE`:
++
++```sql
++CREATE OR REPLACE VIEW vw_acme_open_orders AS
++SELECT o.order_id,
++       o.order_number,
++       o.status_code
++FROM   acme_orders o
++WHERE  o.status_code = 'OPEN';
++/
++```
++
++---
++
++## Seed Data with MERGE
++
++Reference / lookup data must be safe to re-run:
++
++```sql
++-- seeds/order_statuses.sql
++MERGE INTO acme_order_statuses t
++USING (
++    SELECT 'OPEN'      AS status_code, 'Open'      AS status_name FROM DUAL UNION ALL
++    SELECT 'SHIPPED'   AS status_code, 'Shipped'   AS status_name FROM DUAL UNION ALL
++    SELECT 'CANCELLED' AS status_code, 'Cancelled' AS status_name FROM DUAL
++) s
++ON (t.status_code = s.status_code)
++WHEN MATCHED THEN
++    UPDATE SET t.status_name = s.status_name
++WHEN NOT MATCHED THEN
++    INSERT (status_code, status_name)
++    VALUES (s.status_code, s.status_name);
++```
++
++For tables with audit columns, include `created_by` / `created` on insert and update `modified_by` / `modified` on match when values change.
++
++---
++
++## Repository Layout
++
++```text
++database/
++  install.sql
++  oracle-schema-prefix.md      ← project prefix config (from template)
++  tables/
++    customers.sql
++    orders.sql
++  indexes/
++    orders.sql
++  views/
++    vw_open_orders.sql
++  seeds/
++    order_statuses.sql
++  grants/
++    app_user.sql
++```
++
++Adjust paths to match the project; keep lowercase file names.
++
++---
++
++## SQL*Plus Substitution Variables
++
++- Use `DEFINE recreate = 0` in `install.sql` for the table rebuild flag.
++- Use `WHENEVER SQLERROR EXIT FAILURE ROLLBACK` at the top of install scripts.
++- Validate dynamic DDL identifiers with `DBMS_ASSERT` when building from parameters — see `db/agent/idempotency-patterns.md`.
++
++---
++
++## What Not to Touch
++
++- `apex/` export folders
++- `f###.sql` APEX application export files at the repository root
++
++---
++
++## Oracle Version Notes (19c vs 26ai)
++
++Scripts target 19c. Identity columns and `MERGE` are supported. When moving to 26ai, revisit boolean column types per `schema-standards.md`.
++
++---
++
++## Sources
++
++- Project conventions (this domain)
++- `db/agent/idempotency-patterns.md`
++- `db/devops/version-control-sql.md` — install ordering concepts
+diff --git a/oracle-dev/templates/oracle-schema-prefix.md b/oracle-dev/templates/oracle-schema-prefix.md
+new file mode 100644
+index 0000000..e07eea1
+--- /dev/null
++++ b/oracle-dev/templates/oracle-schema-prefix.md
+@@ -0,0 +1,42 @@
++# Oracle Schema Prefix
++
++> Copy this file to your **project repository root** as `oracle-schema-prefix.md`.
++> Agents and developers must read this file before creating Oracle objects in this project.
++
++## Application
++
++| Setting | Value |
++|---------|-------|
++| Application name | _e.g. Acme Order Management_ |
++| Object prefix | _e.g. `acme_`_ |
++| Schema owner | _e.g. `ACME_APP`_ |
++| Application runtime user | _e.g. `ACME_USER`_ |
++| Install / migration user | _e.g. `ACME_DDL`_ |
++
++## Prefix Rules
++
++- Prefix: **`acme_`** (lowercase, trailing underscore)
++- Applies to: tables, views, indexes, sequences, constraints
++- Table names: plural lowercase → `acme_orders`
++- Views: `vw_` prefix → `vw_acme_open_orders`
++
++## Status Lookup Codes
++
++Document canonical status values here so seeds and application code stay aligned:
++
++| Table | Code column | Values |
++|-------|-------------|--------|
++| `acme_order_statuses` | `status_code` | `OPEN`, `SHIPPED`, `CANCELLED` |
++| `acme_record_statuses` | `status_code` | `ACTIVE`, `INACTIVE` |
++
++## Index Numbering
++
++When a table has multiple indexes, use numeric suffixes:
++
++| Table | Indexes |
++|-------|---------|
++| `acme_orders` | `idx_acme_orders_customer_id`, `idx_acme_orders_2` |
++
++## Notes
++
++_Add project-specific exceptions, legacy table names without prefix, or integration schemas here._
+-- 
+2.43.0
+
