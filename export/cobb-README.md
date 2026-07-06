@@ -1,6 +1,6 @@
 # cobb-dev-agent-skills
 
-Collection of agent skills for AI coding on Cobb County development projects.
+Collection of personal agent skills for AI-assisted development.
 
 ## Skills
 

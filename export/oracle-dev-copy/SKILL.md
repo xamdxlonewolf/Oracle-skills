@@ -5,7 +5,7 @@ description: Project-specific Oracle Database schema and SQL development standar
 
 # Oracle Dev Schema Skills
 
-Project-tailored Oracle Database guidance for **SQL and schema object creation**. This domain reflects Cobb County application development preferences, not generic Oracle documentation defaults.
+Project-tailored Oracle Database guidance for **SQL and schema object creation**. This domain reflects personal application development preferences, not generic Oracle documentation defaults.
 
 For administration, performance, security, PL/SQL patterns, SQLcl, ORDS, and broad Oracle Database topics, install and use the **`db/`** domain from [oracle/skills](https://github.com/oracle/skills):
 
