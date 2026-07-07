@@ -1,6 +1,7 @@
 {
   "official": [
-    "oracle/skills/db"
+    "oracle/skills/db",
+    "oracle/skills/apex"
   ],
   "custom": [
     "xamdxlonewolf/Oracle-skills/oracle-dev-db"
