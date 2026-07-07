@@ -6,11 +6,16 @@ The goal is to give developers and agents a single place to find source-backed O
 
 ## Installation
 
-Install a domain by appending the root-level domain directory to the repository name:
+Install official Oracle domains from `oracle/skills`. Install **your** custom project schema skill from this fork.
 
 ```bash
+# Official Oracle Database skill (escalation / topics outside project standards)
 npx skills add oracle/skills/db
-npx skills add oracle/skills/oracle-dev   # pairs with db/; project schema standards take precedence
+
+# Your project schema standards — primary entry point (this repo)
+npx skills add xamdxlonewolf/Oracle-skills/oracle-dev-db
+
+# Other official domains as needed
 npx skills add oracle/skills/oci
 npx skills add oracle/skills/graal
 ...
@@ -49,7 +54,7 @@ Browse and toggle installed plugins anytime with `/plugin`. Enabled plugins are 
 ## Domains
 
 - `db/` is the active Oracle Database domain and includes database, ORDS, SQLcl, framework, container, and agent workflow skills.
-- `oracle-dev/` is the project-tailored Oracle schema development domain: naming conventions, natural keys, audit columns, lookup-table patterns, hand-run idempotent DDL scripts, and project prefix discovery. **Install this as your primary entry point for application schema work** — it pairs with `db/` and your project standards take precedence; `db/` is consulted automatically only for topics outside `oracle-dev/` (admin, performance, PL/SQL, ORDS, SQLcl, and similar).
+- `oracle-dev-db/` is **your** project-tailored Oracle schema development domain (this fork only — not in `oracle/skills`): naming conventions, natural keys, audit columns, lookup-table patterns, hand-run idempotent DDL scripts, and project prefix discovery. **Install this as your primary entry point for application schema work** — it pairs with official `oracle/skills/db` and your project standards take precedence; `db/` is consulted only for topics outside `oracle-dev-db/`.
 - `oci/` contains Oracle Cloud Infrastructure skills, including OCI Functions deployment and troubleshooting, OCI Kubernetes Engine cluster design and troubleshooting, OCI IoT Platform digital twin workflows, plus Enterprise AI guidance for OCI Generative AI, agents, RAG, governance, model endpoints, Autonomous Database, APEX, and integrations.
 - `fusion/` is the root for future Oracle Fusion skills.
 - `apex/` is the root for future Oracle APEX skills.
@@ -84,6 +89,11 @@ Browse and toggle installed plugins anytime with `/plugin`. Enabled plugins are 
 │   ├── security/
 │   ├── sql-dev/
 │   └── sqlcl/
+├── oracle-dev-db/          # custom project schema skill (this fork)
+│   ├── SKILL.md
+│   ├── design/
+│   ├── devops/
+│   └── templates/
 ├── fusion/
 │   └── SKILL.md
 ├── apex/

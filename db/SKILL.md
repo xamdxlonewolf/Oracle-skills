@@ -12,22 +12,6 @@ This domain contains Oracle Database skills for administration, SQL and PL/SQL d
 1. Start with the routing table below.
 2. Read only the specific file or category you need.
 
-## Paired Skill: `oracle-dev/` (project schema standards)
-
-When the user invoked **`oracle-dev`** (project dev DB skill) or the task is **application schema DDL** in a project repo, **`oracle-dev/` takes precedence** over generic `db/` guidance for coding standards.
-
-**Defer to `oracle-dev/` instead of this domain for:**
-
-- Project prefix discovery and object naming
-- Application tables, columns, keys, constraints, indexes, and views
-- Natural keys, lookup FKs, audit columns, and status-based lifecycle
-- Hand-run idempotent install scripts and MERGE seed data
-- APEX export exclusions (`apex/` folders and root `f###.sql` files)
-
-**Stay in `db/` when `oracle-dev/` does not cover the topic**, including administration, performance tuning, PL/SQL package design, ORDS, SQLcl, drivers, frameworks, migrations from other databases, security hardening, backup/recovery, and agent-safe operational workflows.
-
-If both skills apply in one session (for example "add a table and tune the insert SQL"), use `oracle-dev/` for the DDL shape and `db/` only for the uncovered work (for example `db/performance/` or `db/plsql/`).
-
 ## Directory Structure
 
 ```text

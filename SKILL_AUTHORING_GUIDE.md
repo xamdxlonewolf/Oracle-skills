@@ -33,7 +33,7 @@ Each installable domain `SKILL.md` must start with YAML front matter containing
 `name` and `description` fields. Skill installers use these fields to discover
 and validate skills. Optionally declare a paired domain with `depends` so
 installers pull in prerequisite skills from the same repository (for example
-`oracle-dev` depends on `db`).
+`oracle-dev-db` pairs with official `oracle/skills/db` at install time).
 
 ```markdown
 ---
