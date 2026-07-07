@@ -36,7 +36,7 @@ npx github:xamdxlonewolf/Oracle-skills sync-oracle-skills --global
 npx github:xamdxlonewolf/Oracle-skills sync-oracle-skills --check
 ```
 
-Edit `sync-skills.config.json` to add more official domains (for example `oracle/skills/oci`) or change paths.
+Edit `sync-skills.config.json` to add more official domains or change paths. By default it syncs `db`, `apex`, and your `oracle-dev-db` skill.
 
 **Note:** This updates **installed** skills via the skills CLI. It does not merge git changes into your fork's `db/` folder — for that, use the upstream git workflow described below if you still maintain a full fork.
 
