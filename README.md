@@ -21,6 +21,25 @@ npx skills add oracle/skills/graal
 ...
 ```
 
+### One command: update official + your custom skill
+
+This repo includes `sync-oracle-skills` — a thin wrapper that re-runs `npx skills add` for the official domains and your `oracle-dev-db` skill (pulls latest from GitHub each time).
+
+```bash
+# From anywhere (after this branch is merged to your default branch)
+npx github:xamdxlonewolf/Oracle-skills sync-oracle-skills
+
+# Global install (skills available in all projects)
+npx github:xamdxlonewolf/Oracle-skills sync-oracle-skills --global
+
+# Preview without installing
+npx github:xamdxlonewolf/Oracle-skills sync-oracle-skills --check
+```
+
+Edit `sync-skills.config.json` to add more official domains (for example `oracle/skills/oci`) or change paths.
+
+**Note:** This updates **installed** skills via the skills CLI. It does not merge git changes into your fork's `db/` folder — for that, use the upstream git workflow described below if you still maintain a full fork.
+
 ### Install in Claude Code
 
 This repository also ships as a Claude Code plugin marketplace (`.claude-plugin/marketplace.json`), where each domain folder (`apex`, `db`, `fusion`, `graal`, `oci`) is published as its own plugin.

@@ -1,0 +1,10 @@
+{
+  "official": [
+    "oracle/skills/db"
+  ],
+  "custom": [
+    "xamdxlonewolf/Oracle-skills/oracle-dev-db"
+  ],
+  "skillsCli": "skills",
+  "defaultFlags": ["-y"]
+}

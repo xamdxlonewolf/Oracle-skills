@@ -1,0 +1,24 @@
+{
+  "name": "@xamdxlonewolf/sync-oracle-skills",
+  "version": "1.0.0",
+  "description": "Reinstall official oracle/skills domains and your oracle-dev-db custom skill via npx skills add",
+  "type": "module",
+  "bin": {
+    "sync-oracle-skills": "./scripts/sync-oracle-skills.mjs"
+  },
+  "files": [
+    "scripts/sync-oracle-skills.mjs",
+    "sync-skills.config.json"
+  ],
+  "keywords": [
+    "oracle",
+    "skills",
+    "cursor",
+    "claude"
+  ],
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xamdxlonewolf/Oracle-skills.git"
+  }
+}
