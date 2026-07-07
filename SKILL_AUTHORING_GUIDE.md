@@ -31,7 +31,9 @@ Domains can contain nested skills when a large OCI, APEX, Database, or Fusion ca
 
 Each installable domain `SKILL.md` must start with YAML front matter containing
 `name` and `description` fields. Skill installers use these fields to discover
-and validate skills.
+and validate skills. Optionally declare a paired domain with `depends` so
+installers pull in prerequisite skills from the same repository (for example
+`oracle-dev` depends on `db`).
 
 ```markdown
 ---
@@ -39,6 +41,10 @@ name: db
 description: Oracle Database skills for administration, SQL and PL/SQL development, performance tuning, security, ORDS, SQLcl, migrations, frameworks, and agent-safe database workflows.
 ---
 ```
+
+Paired domains should document precedence in both `SKILL.md` files: the project
+or specialized domain wins on overlap; the generic domain is used only for
+uncovered topics.
 
 For a populated domain, organize content by category directories under the domain path and use the domain `SKILL.md` as the domain table of contents. The standard pattern is:
 

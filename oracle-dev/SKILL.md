@@ -1,20 +1,41 @@
 ---
 name: oracle-dev
-description: Project-specific Oracle Database schema and SQL development standards for 19c-first estates. Use when creating or altering tables, views, indexes, constraints, sequences, seed data scripts, or idempotent DDL in application schemas. Covers naming conventions, natural keys, audit columns, lookup-table patterns, hand-run migration scripts, and project prefix discovery. Does not replace the generic db/ domain for administration, performance tuning, PL/SQL package design, ORDS, or agent-safe operations — route those to db/ when needed.
+description: Project-specific Oracle Database schema and SQL development standards for 19c-first estates. Primary entry point for application schema work — your project naming, keys, audit columns, lookup patterns, and idempotent DDL take precedence over generic db/ guidance. Automatically consults the paired official db/ skill only for topics outside this domain (administration, performance tuning, PL/SQL package design, ORDS, SQLcl, agent-safe ops, drivers, frameworks). Use when creating or altering tables, views, indexes, constraints, sequences, seed data scripts, or idempotent DDL in application schemas.
+depends:
+  - db
 ---
 
 # Oracle Dev Schema Skills
 
 Project-tailored Oracle Database guidance for **SQL and schema object creation**. This domain reflects application development preferences, not generic Oracle documentation defaults.
 
-For administration, performance, security, PL/SQL patterns, SQLcl, ORDS, and broad Oracle Database topics, use the `db/` domain instead.
+## Entry Point and Precedence (read first)
+
+You were invoked through **`oracle-dev`**. Treat this domain as the **authoritative source** for application schema coding. The paired official **`db/`** skill is available for everything else.
+
+**Precedence rule — always apply in this order:**
+
+1. **Check `oracle-dev/` first.** If the topic appears in the Category Routing table below, follow only `oracle-dev/` files. Do not substitute generic guidance from `db/design/`, `db/devops/`, or other `db/` paths when `oracle-dev/` covers the same concern.
+2. **Escalate to `db/` only when needed.** If the topic is outside `oracle-dev/` scope, read `db/SKILL.md` and route to the matching `db/` category.
+3. **On overlap, `oracle-dev/` wins.** When both domains touch the same artifact (for example table DDL, column naming, PK/FK strategy, audit columns, seed scripts, or install-script style), apply `oracle-dev/` standards and use `db/` only for the uncovered parts (for example explain plan, package bodies, or admin tasks in the same session).
+
+**Paired skill:** `db/` (official Oracle Database domain). Install with `npx skills add oracle/skills/oracle-dev` — the `depends` field pulls in `db/` automatically when supported.
+
+| Stay in `oracle-dev/` (your standards win) | Escalate to `db/` (official guidance) |
+|--------------------------------------------|---------------------------------------|
+| Project prefix and object naming | Database administration, users, roles, tablespaces |
+| Tables, columns, keys, constraints, indexes, views in app schemas | Performance tuning, AWR, ASH, explain plan, optimizer |
+| Natural keys, lookup FKs, audit columns, status lifecycle | PL/SQL package design, collections, cursors, debugging |
+| Hand-run idempotent install and seed scripts | Liquibase/Flyway-first migrations, online redefinition |
+| 19c-first project DDL defaults | ORDS, SQLcl, JDBC/drivers, language frameworks |
+| APEX export exclusions (never touch `apex/` or `f###.sql`) | Agent-safe destructive-op guards, schema discovery, ORA catalog |
 
 ## How to Use This Domain
 
 1. **Read the project prefix file first** — see `design/project-prefix.md`.
 2. Apply `design/schema-standards.md` for every new or changed object.
 3. Use `devops/idempotent-ddl-scripts.md` for install scripts, seed data, and object deployment.
-4. Fall back to `db/` for topics not covered here.
+4. **Only if the task is outside the table above**, open `db/SKILL.md` and follow its routing for the uncovered topic.
 
 ## Directory Structure
 

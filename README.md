@@ -10,6 +10,7 @@ Install a domain by appending the root-level domain directory to the repository 
 
 ```bash
 npx skills add oracle/skills/db
+npx skills add oracle/skills/oracle-dev   # pairs with db/; project schema standards take precedence
 npx skills add oracle/skills/oci
 npx skills add oracle/skills/graal
 ...
@@ -48,7 +49,7 @@ Browse and toggle installed plugins anytime with `/plugin`. Enabled plugins are 
 ## Domains
 
 - `db/` is the active Oracle Database domain and includes database, ORDS, SQLcl, framework, container, and agent workflow skills.
-- `oracle-dev/` is the project-tailored Oracle schema development domain: naming conventions, natural keys, audit columns, lookup-table patterns, hand-run idempotent DDL scripts, and project prefix discovery. Use it for application schema work; use `db/` for generic Oracle guidance.
+- `oracle-dev/` is the project-tailored Oracle schema development domain: naming conventions, natural keys, audit columns, lookup-table patterns, hand-run idempotent DDL scripts, and project prefix discovery. **Install this as your primary entry point for application schema work** — it pairs with `db/` and your project standards take precedence; `db/` is consulted automatically only for topics outside `oracle-dev/` (admin, performance, PL/SQL, ORDS, SQLcl, and similar).
 - `oci/` contains Oracle Cloud Infrastructure skills, including OCI Functions deployment and troubleshooting, OCI Kubernetes Engine cluster design and troubleshooting, OCI IoT Platform digital twin workflows, plus Enterprise AI guidance for OCI Generative AI, agents, RAG, governance, model endpoints, Autonomous Database, APEX, and integrations.
 - `fusion/` is the root for future Oracle Fusion skills.
 - `apex/` is the root for future Oracle APEX skills.
