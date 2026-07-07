@@ -89,4 +89,4 @@ Prefix rules are version-independent.
 ## Sources
 
 - Project convention (this domain)
-- `oracle-dev/design/schema-standards.md`
+- `oracle-dev-db/design/schema-standards.md`

@@ -25,6 +25,13 @@
       "keywords": ["oracle", "database", "sql", "plsql", "sqlcl", "ords", "performance", "security", "migrations"]
     },
     {
+      "name": "oracle-dev-db",
+      "source": "./oracle-dev-db",
+      "description": "Project-specific Oracle Database schema and SQL development standards (custom fork skill). Primary entry point for application schema work — project naming, keys, audit columns, and idempotent DDL take precedence over generic db/ guidance. Pair with official oracle/skills/db for administration, performance, PL/SQL, ORDS, SQLcl, and other topics outside project schema standards.",
+      "category": "oracle",
+      "keywords": ["oracle", "database", "schema", "ddl", "naming", "migrations", "project-standards"]
+    },
+    {
       "name": "fusion",
       "source": "./fusion",
       "description": "Oracle Fusion domain. Placeholder for future Oracle Fusion skills.",
